@@ -154,3 +154,22 @@ end
 exec sys.sp_setbuildresource 0
 go
 ```
+
+##For SQL Server 2019, If the issue is not getting resolved by following above steps. You can try with the below steps for the error:
+
+Msg 2601, Level 14, State 1, Procedure sys.sp_flush_commit_table, Line 16 [Batch Start Line 7]
+Cannot insert duplicate key row in object 'sys.syscommittab' with unique index 'si_xdes_id'. The duplicate key value is (49979609963).
+The statement has been terminated.
+Msg 2601, Level 14, State 1, Procedure sys.sp_flush_commit_table, Line 16 [Batch Start Line 7]
+Cannot insert duplicate key row in object 'sys.syscommittab' with unique index 'si_xdes_id'. The duplicate key value is (49979609963).
+
+1. Verify whether the database is in part of AG. If AG is configured for the same database, First step is to remove the database from AG
+2. Disable Change Tracking for the database which is having issue, where you are unable to take Full Backup
+3. perform multiple checkpoints until checkpoints completed successfully instead of throwing errors
+4. After performing checkpoint sucessfully, we are able to take the full backup for the database without any issue
+5. verify the size of the sys.syscommittab table through "sp_spaceused 'sys.syscommittab'"
+6. Post that, since the data in the sys.syscommittab will be there we need to flush it with the below command:
+sp_flush_commit_table_on_demand
+7. Post flusing the table, reverify the size of the sys.syscommittab. Ideally the data in the table would have flushed and there will be less data in the table
+8. After fixing the issue, Enable Change Tracking and Always On which are disabled earlier
+
